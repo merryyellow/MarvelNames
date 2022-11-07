@@ -25,6 +25,8 @@ namespace MarvelNames
     /// </remarks>
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid(MarvelNamesPackage.PackageGuidString)]
+    [ProvideAutoLoad(Microsoft.VisualStudio.Shell.Interop.UIContextGuids.EmptySolution, PackageAutoLoadFlags.BackgroundLoad)]
+    [ProvideAutoLoad(Microsoft.VisualStudio.Shell.Interop.UIContextGuids.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
     public sealed class MarvelNamesPackage : AsyncPackage
     {
         /// <summary>
