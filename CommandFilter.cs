@@ -106,14 +106,14 @@ namespace MarvelNames
 
     internal sealed class TypeCharFilter : IOleCommandTarget
     {
-        IOleCommandTarget nextCommandHandler;
-        ITextView textView;
-        internal int typedChars { get; set; }
+        readonly IOleCommandTarget nextCommandHandler;
+        readonly ITextView textView;
+        //internal int typedChars { get; set; }
 
-        bool leadingCharacters = false;
-        bool trailingCharacters = false;
+        const bool leadingCharacters = false;
+        const bool trailingCharacters = false;
 
-        bool blockComment, lineComment, xmlComment;
+        readonly bool blockComment, lineComment, xmlComment;
 
         /// <summary>
         /// Add this filter to the chain of Command Filters
@@ -148,16 +148,16 @@ namespace MarvelNames
             if (TryGetTypedChar(pguidCmdGroup, nCmdID, pvaIn, out typedChar))
             {
                 //adornment.UpdateBar(typedChars++);
-                TellAJoke(typedChar);
+                NameACandidate(typedChar);
             }
 
             return hr;
         }
 
-        private void TellAJoke(char typedChar)
+        private void NameACandidate(char typedChar)
         {
-            if (!(typedChar == '/' && (lineComment || xmlComment)) &&
-                !(typedChar == '*' && blockComment))
+            if (!(typedChar == ' ') &&
+                !(typedChar == '\t'))
                 return;
 
             var caretPosition = textView.Caret.Position.BufferPosition;
@@ -173,22 +173,26 @@ namespace MarvelNames
             if (!isXml)
             {
                 // check previous char
-                if (!line.Contains(caretPosition - 2) || line.Snapshot[caretPosition - 2] != '/')
+                //if (!line.Contains(caretPosition - 2) || line.Snapshot[caretPosition - 2] != '/')
+                //return;
+
+                if (!line.Contains(caretPosition - 4) || line.Snapshot[caretPosition - 4] != 'i' ||
+                    line.Snapshot[caretPosition - 3] != 'n' || line.Snapshot[caretPosition - 2] != 't')
                     return;
 
                 // there are leading characters
-                if (!leadingCharacters && (int)caretPosition - FirstIndexOfNonWhiteSpace(line) != 2)
-                    return;
+                //if (!leadingCharacters && (int)caretPosition - FirstIndexOfNonWhiteSpace(line) != 2)
+                  //  return;
             }
 
-            var joke = Namer.TellAJoke();
+            var name = Namer.GetAName();
 
-            // insert joke
+            // insert name
             var span = new Span(caretPosition, 0);
-            var snapshot = textView.TextBuffer.Replace(span, joke);
+            var snapshot = textView.TextBuffer.Replace(span, name);
 
-            // select joke
-            textView.Selection.Select(new SnapshotSpan(snapshot, span.Start, joke.Length), false);
+            // select name
+            textView.Selection.Select(new SnapshotSpan(snapshot, span.Start, name.Length), false);
 
             bool isXmlFunc()
             {
