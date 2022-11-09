@@ -3,10 +3,18 @@
     <Metadata>
         <Identity Id="MarvelNames.c02de491-abfe-40d9-adcd-0e9e8c288402" Version="1.0" Language="en-US" Publisher="Merry Yellow" />
         <DisplayName>Marvel Names</DisplayName>
-        <Description xml:space="preserve">Auto namer for your fields, variables, methods and classesAuto namer for your </Description>
+        <Description xml:space="preserve">Auto namer for your fields, variables, methods etc.</Description>
+        <Icon>Marvel_Names_logo.png</Icon>
+        <PreviewImage>Marvel_Names_logo.png</PreviewImage>
     </Metadata>
     <Installation>
         <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0, 18.0)">
+            <ProductArchitecture>amd64</ProductArchitecture>
+        </InstallationTarget>
+        <InstallationTarget Version="[17.0,18.0)" Id="Microsoft.VisualStudio.Pro">
+            <ProductArchitecture>amd64</ProductArchitecture>
+        </InstallationTarget>
+        <InstallationTarget Version="[17.0,18.0)" Id="Microsoft.VisualStudio.Enterprise">
             <ProductArchitecture>amd64</ProductArchitecture>
         </InstallationTarget>
     </Installation>
