@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -101,6 +102,35 @@ namespace MarvelNames
             new string[]{
                 ".cs", "csx", // c#
             });
+
+
+        public static readonly string[] csharpKeywords = new string[]
+        {
+            "bool",
+            "byte",
+            "char",
+            "class",
+            "decimal",
+            "double",
+            "enum",
+            "float",
+            "int",
+            "interface",
+            "long",
+            "namespace",
+            "sbyte",
+            "short",
+            "string",
+            "struct",
+            "uint",
+            "ulong",
+            "ushort",
+            "void",
+            
+            "dynamic",
+            "var",
+            "record",
+    };
     }
 
 
@@ -156,8 +186,8 @@ namespace MarvelNames
 
         private void NameACandidate(char typedChar)
         {
-            if (!(typedChar == ' ') &&
-                !(typedChar == '\t'))
+            if (typedChar != ' ' &&
+                typedChar != '\t')
                 return;
 
             var caretPosition = textView.Caret.Position.BufferPosition;
@@ -168,22 +198,30 @@ namespace MarvelNames
             if (!trailingCharacters && caretPosition != line.End)
                 return;
 
-            var isXml = xmlComment && typedChar == '/' && isXmlFunc();
 
-            if (!isXml)
-            {
-                // check previous char
-                //if (!line.Contains(caretPosition - 2) || line.Snapshot[caretPosition - 2] != '/')
-                //return;
+            // check previous char
+            //if (!line.Contains(caretPosition - 2) || line.Snapshot[caretPosition - 2] != '/')
+            //return;
 
-                if (!line.Contains(caretPosition - 4) || line.Snapshot[caretPosition - 4] != 'i' ||
-                    line.Snapshot[caretPosition - 3] != 'n' || line.Snapshot[caretPosition - 2] != 't')
-                    return;
+            //if (!line.Contains(caretPosition - 4) || line.Snapshot[caretPosition - 4] != 'i' ||
+            //  line.Snapshot[caretPosition - 3] != 'n' || line.Snapshot[caretPosition - 2] != 't')
+            //return;
 
-                // there are leading characters
-                //if (!leadingCharacters && (int)caretPosition - FirstIndexOfNonWhiteSpace(line) != 2)
-                  //  return;
-            }
+            var pattern = String.Format(
+                "([ \\t\\n]|^)({0})(\\*)*(\\[(\\,)*\\])*[ \\t]{1}",
+                string.Join("|", VsTextViewListener.csharpKeywords),
+                trailingCharacters ? "" : "$");
+            var regex = new Regex(pattern);
+            if (!regex.IsMatch(line.GetText()))
+                return;
+            //line.Snapshot.GetText(0, caretPosition)
+
+            //line.Snapshot.GetText()
+
+            // there are leading characters
+            //if (!leadingCharacters && (int)caretPosition - FirstIndexOfNonWhiteSpace(line) != 2)
+                //  return;
+            
 
             var name = Namer.GetAName();
 
@@ -193,25 +231,6 @@ namespace MarvelNames
 
             // select name
             textView.Selection.Select(new SnapshotSpan(snapshot, span.Start, name.Length), false);
-
-            bool isXmlFunc()
-            {
-                // check previous char
-                if (!line.Contains(caretPosition - 3) || line.Snapshot[caretPosition - 3] != '/' ||
-                    line.Snapshot[caretPosition - 2] != '/' || line.Snapshot[caretPosition - 1] != ' ')
-                    return false;
-                // there are leading characters
-                if (/*!leadingCharacters && */(int)caretPosition - FirstIndexOfNonWhiteSpace(line) != 4)
-                    return false;
-
-                var previousLineNumber = lineRaw.LineNumber - 1;
-                var previousLineText = textView.TextBuffer.CurrentSnapshot.GetLineFromLineNumber(previousLineNumber)?.Extent.GetText().TrimStart();
-
-                if (previousLineText != "/// <summary>")
-                    return false;
-                
-                return true;
-            }
         }
 
         /// <summary>
