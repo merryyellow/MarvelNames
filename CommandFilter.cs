@@ -8,12 +8,15 @@ https://github.com/microsoft/VSSDK-Extensibility-Samples/blob/master/Typing_Spee
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.ComponentModel.Composition.Primitives;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using EnvDTE90;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
@@ -38,19 +41,66 @@ namespace MarvelNames
                 return;
 
             var extension = GetExtension(textView);
-            
-            var isBoth = both.Contains(extension);
-            var isSingle = isBoth || single.Contains(extension);
-            var isBlock = isBoth || block.Contains(extension);
-            var isXml = xml.Contains(extension);
+
 
             //var adornment = textView.Properties.GetProperty<TypingSpeedMeter>(typeof(TypingSpeedMeter));
-
-            if (isSingle || isBlock || isXml)
+            if (IsLanguageSupported(extension, out var regex))
             {
                 textView.Properties.GetOrCreateSingletonProperty(
                     () => new TypeCharFilter(textViewAdapter, textView,
-                    isSingle, isBlock, isXml));
+                    regex));
+            }
+
+        }
+
+        public static Regex csharpRegex, cppRegex, javascriptRegex, javaRegex, pythonRegex;
+
+        bool IsLanguageSupported(string extension, out Regex regex)
+        {
+            if (csharpExtensions.Contains(extension))
+            {
+                if (csharpRegex == null)
+                    csharpRegex = createRegex(csharpKeywords);
+                regex = csharpRegex;
+            }
+            else if (cppExtensions.Contains(extension))
+            {
+                if (cppRegex == null)
+                    cppRegex = createRegex(cppKeywords);
+                regex = cppRegex;
+            }
+            else if (javascriptExtensions.Contains(extension))
+            {
+                if (javascriptRegex == null)
+                    javascriptRegex = createRegex(javascriptKeywords);
+                regex = javascriptRegex;
+            }
+            else if (javaExtensions.Contains(extension))
+            {
+                if (javaRegex == null)
+                    javaRegex = createRegex(javaKeywords);
+                regex = javaRegex;
+            }
+            else if (pythonExtensions.Contains(extension))
+            {
+                if (pythonRegex == null)
+                    pythonRegex = createRegex(pythonKeywords);
+                regex = pythonRegex;
+            }
+            else
+            {
+                regex = null;
+            }
+
+            return regex != null;
+
+            Regex createRegex(string[] keywords)
+            {
+                var pattern = String.Format(
+                    "([ \\t\\n]|^)({0})(\\*|&|\\?)*(\\[(\\,)*\\])*[ \\t]{1}",
+                    string.Join("|", keywords),
+                    TypeCharFilter.trailingCharacters ? "" : "$");
+                return new Regex(pattern);
             }
         }
 
@@ -71,37 +121,39 @@ namespace MarvelNames
             return extension.ToLower();
         }
 
+
         // language list from: https://docs.microsoft.com/en-us/visualstudio/ide/adding-visual-studio-editor-support-for-other-languages?view=vs-2022
-        // both single & block
-        HashSet<string> both = new HashSet<string>(
+        /*HashSet<string> both = new HashSet<string>(
             new string[]{
                 ".cs", ".csx", // c#
                 ".c", ".cc",  ".cpp", ".cxx", ".c++", ".h", ".hh", ".hpp", ".hxx", ".h++", // c/c++
-                ".m", ".mm", // objective c
                 ".ts", ".tsx", // typescript
                 ".js", ".cjs", ".mjs", // javascript
-                ".go", // go
                 ".java", ".class", ".jmod", ".jar", // java
-                ".rs", ".rlib", // rust
-                ".groovy", ".gvy", ".gy", ".gsh", // groovy
-                ".less", // less
-                ".swift", // swift
-            });
-        HashSet<string> single = new HashSet<string>(
-            new string[]
-            {
-                ".fs", ".fsi", ".fsx", ".fsscript", // f#
-                ".jade", // jade
-            });
-        HashSet<string> block = new HashSet<string>(
-            new string[]
-            {
-                ".css", // css
-            });
-        HashSet<string> xml = new HashSet<string>(
-            new string[]{
-                ".cs", "csx", // c#
-            });
+                ".py", // python
+            });*/
+
+        public static readonly string[] csharpExtensions = new string[]
+        {
+            ".cs", ".csx", // c#
+        };
+        public static readonly string[] cppExtensions = new string[]
+        {
+            ".c", ".cc",  ".cpp", ".cxx", ".c++", ".h", ".hh", ".hpp", ".hxx", ".h++", // c/c++
+        };
+        public static readonly string[] javascriptExtensions = new string[]
+        {
+            ".ts", ".tsx", // typescript
+            ".js", ".cjs", ".mjs", // javascript
+        };
+        public static readonly string[] javaExtensions = new string[]
+        {
+            ".java", ".class", ".jmod", ".jar", // java
+        };
+        public static readonly string[] pythonExtensions = new string[]
+        {
+            ".py", // python
+        };
 
 
         public static readonly string[] csharpKeywords = new string[]
@@ -130,7 +182,65 @@ namespace MarvelNames
             "dynamic",
             "var",
             "record",
-    };
+        };
+
+        public static readonly string[] cppKeywords = new string[]
+        {
+            "auto",
+            "bool",
+            "char",
+            "char8_t",
+            "char16_t",
+            "char32_t",
+            "class",
+            "double",
+            "enum",
+            "float",
+            "int",
+            "long",
+            "short",
+            "struct",
+            "union",
+            "void",
+            "wchar_t",
+        };
+
+        public static readonly string[] javaKeywords = new string[]
+        {
+            "boolean",
+            "byte",
+            "char",
+            "class",
+            "double",
+            "enum",
+            "float",
+            "int",
+            "interface",
+            "long",
+            "package",
+            "short",
+            "void",
+        };
+
+        public static readonly string[] javascriptKeywords = new string[]
+        {
+            "class",
+            "const",
+            "function",
+            "interface",
+            "let",
+            "var",
+        };
+
+        public static readonly string[] pythonKeywords = new string[]
+        {
+            "as",
+            "class",
+            "def",
+            "global",
+            "nonlocal",
+        };
+
     }
 
 
@@ -140,23 +250,20 @@ namespace MarvelNames
         readonly ITextView textView;
         //internal int typedChars { get; set; }
 
-        const bool leadingCharacters = false;
-        const bool trailingCharacters = false;
+        public const bool leadingCharacters = false;
+        public const bool trailingCharacters = false;
 
-        readonly bool blockComment, lineComment, xmlComment;
+        readonly Regex regex;
 
         /// <summary>
         /// Add this filter to the chain of Command Filters
         /// </summary>
         internal TypeCharFilter(IVsTextView adapter, ITextView textView,
-            bool blockComment, bool lineComment, bool xmlComment)
+            Regex regex)
         {
             this.textView = textView;
-
-            this.blockComment = blockComment;
-            this.lineComment = lineComment;
-            this.xmlComment = xmlComment;
-
+            this.regex = regex;
+            
             adapter.AddCommandFilter(this, out nextCommandHandler);
         }
 
@@ -207,11 +314,13 @@ namespace MarvelNames
             //  line.Snapshot[caretPosition - 3] != 'n' || line.Snapshot[caretPosition - 2] != 't')
             //return;
 
+            /*
             var pattern = String.Format(
-                "([ \\t\\n]|^)({0})(\\*)*(\\[(\\,)*\\])*[ \\t]{1}",
+                "([ \\t\\n]|^)({0})(\\*|&)*(\\[(\\,)*\\])*[ \\t]{1}",
                 string.Join("|", VsTextViewListener.csharpKeywords),
                 trailingCharacters ? "" : "$");
             var regex = new Regex(pattern);
+            */
             if (!regex.IsMatch(line.GetText()))
                 return;
             //line.Snapshot.GetText(0, caretPosition)
