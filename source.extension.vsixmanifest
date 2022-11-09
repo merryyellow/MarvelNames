@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" ?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="MarvelNames.c02de491-abfe-40d9-adcd-0e9e8c288402" Version="1.0" Language="en-US" Publisher="Merry Yellow" />
+        <Identity Id="MarvelNames.c02de491-abfe-40d9-adcd-0e9e8c288402" Version="1.0.2" Language="en-US" Publisher="Merry Yellow" />
         <DisplayName>Marvel Names</DisplayName>
-        <Description xml:space="preserve">Auto namer for your fields, variables, methods etc.</Description>
+        <Description xml:space="preserve">Automatically name your fields, variables, methods etc. from the Marvel Universe!</Description>
         <Icon>Marvel_Names_logo.png</Icon>
         <PreviewImage>Marvel_Names_logo.png</PreviewImage>
     </Metadata>
